@@ -79,7 +79,16 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions for:
 
 ## Next.js Integration
 
-See `productContentApi.ts` for the TypeScript client utility.
+Call the API from your Next.js app using `fetch()`:
+
+```typescript
+const response = await fetch('http://localhost:8000/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title, body_html }),
+});
+const content = await response.json();
+```
 
 ## License
 
