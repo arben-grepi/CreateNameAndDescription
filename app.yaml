@@ -1,0 +1,10 @@
+runtime: python312
+
+env_variables:
+  # Set your Anthropic API key in Cloud Console or use Secret Manager
+  # ANTHROPIC_API_KEY: your_key_here
+  # CORS_ORIGINS: https://yourdomain.com
+
+# For Cloud Run, use the Dockerfile instead
+# This file is for App Engine (alternative deployment)
+

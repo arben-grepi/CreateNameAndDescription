@@ -79,14 +79,34 @@ This FastAPI app can be deployed to Firebase Functions to serve as a backend for
 
 ### Example Deployment Commands:
 
-**Cloud Run:**
+**Cloud Run (Recommended):**
+
+Option 1: Using Dockerfile (recommended):
 ```bash
+# Build and deploy
 gcloud run deploy product-content-api \
   --source . \
   --platform managed \
   --region us-central1 \
+  --allow-unauthenticated \
   --set-env-vars ANTHROPIC_API_KEY=your_key,CORS_ORIGINS=https://yourdomain.com
 ```
+
+Option 2: Using Cloud Build:
+```bash
+# Submit build
+gcloud builds submit --config cloudbuild.yaml
+
+# Or deploy directly
+gcloud run deploy product-content-api \
+  --image gcr.io/PROJECT_ID/product-content-api:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars ANTHROPIC_API_KEY=your_key,CORS_ORIGINS=https://yourdomain.com
+```
+
+**Note:** The Dockerfile ensures Python is detected correctly instead of Node.js buildpacks.
 
 **Railway:**
 1. Connect your GitHub repo
