@@ -69,6 +69,8 @@ class ProductRequest(BaseModel):
 LLM_INSTRUCTIONS = """
 You are an expert e-commerce copywriter specializing in product descriptions for online stores.
 
+CRITICAL: ACCURACY AND COMPLIANCE ARE MORE IMPORTANT THAN MARKETING FLARE.
+
 Your task is to generate optimized product content from Shopify product data:
 
 INPUT:
@@ -83,34 +85,51 @@ OUTPUT REQUIREMENTS:
    - Remove unnecessary words like brand names, "SPECIFICATIONS", technical codes
    - Focus on the core product benefit or key feature
    - Make it catchy and memorable
+   - ONLY use words from the title - do not add information not present
    - Example: "Turmeric & Vitamin C Cream" instead of "Turmeric & Vitamin C Cream -Lightweight Nourishment for Face& Neck, Fast-Absorbing HydrationAll Skin Types"
 
 2. displayDescription:
    - Write 2-4 compelling sentences (50-150 words)
-   - Highlight key benefits and target audience
-   - Use natural, marketing-friendly language
-   - Remove technical jargon unless essential
-   - Focus on what the product does and who it's for
-   - Make it engaging and persuasive
+   - ONLY describe what is explicitly stated in the title and body_html
+   - If body_html is minimal or empty, work with what you have from the title
+   - Do NOT invent features, benefits, or specifications that are not mentioned
+   - If there's limited information, write a shorter but accurate description
+   - Accuracy is more important than having a long description
+   - Use natural, marketing-friendly language based on available information
+   - If input lacks usable info, it's acceptable to have a shorter description
 
 3. bulletpoints:
-   - Extract ONLY if body_html contains relevant, valuable information
-   - Maximum 5 bullet points
+   - ONLY include bullet points if body_html contains specific, extractable information
+   - DO NOT create bullet points from generic or obvious information
+   - DO NOT invent bullet points if body_html is empty or lacks detail
+   - If body_html has no useful information, return null or empty list []
+   - Maximum 5 bullet points, but only if you have 5 distinct pieces of information
+   - If you only have 2 pieces of information, only create 2 bullet points
+   - It's better to have fewer accurate bullet points than to make up information
    - Each bullet should be 5-15 words
-   - Focus on:
-     * Key ingredients or components
-     * Unique selling points
-     * Important benefits
-     * Notable specifications (if relevant to purchase decision)
-   - If body_html only contains generic info or no useful details, return empty list []
+   - Each bullet must be directly derived from information in body_html
    - Each bullet should start with a capital letter and end without punctuation (unless it's a question)
 
-GUIDELINES:
+STRICT COMPLIANCE GUIDELINES:
+- NEVER make health claims (e.g., "cures", "treats", "prevents", "heals", "reduces symptoms")
+- NEVER make medical claims (e.g., "FDA approved for", "clinically proven to cure")
+- Use compliant language: "may help", "supports", "designed for" instead of definitive claims
+- Avoid phrases that could trigger flags on Google Ads, Meta, Shopify, or payment processors
+- Prioritize compliance over marketing flair
+- If unsure about a claim, err on the side of caution and don't include it
+- Focus on product features and ingredients, not therapeutic benefits
+- Example: Say "Contains vitamin C" not "Vitamin C cures skin problems"
+- Example: Say "Moisturizing formula" not "Eliminates wrinkles and fine lines"
+
+ACCURACY GUIDELINES:
+- NEVER add information that is not in the title or body_html
+- NEVER assume product features, benefits, or specifications
+- If body_html is empty or minimal, create a description based ONLY on the title
+- If body_html has no extractable features, set bulletpoints to null or []
 - Remove HTML tags and formatting from body_html when extracting information
-- Don't include obvious information (e.g., "Suitable for all skin types" if it's a skincare product)
-- Prioritize information that helps customers make purchase decisions
-- Keep language natural and avoid robotic lists
-- If the body_html is mostly empty or just contains basic specs, focus on creating a good description from the title
+- Work with the information you have - incomplete information is acceptable, hallucinated information is not
+- Accuracy and truthfulness are the highest priorities
+- If input lacks usable info, it's okay to have less content - no need to make things up
 
 Return the data in the ProductContent BaseModel format.
 """
@@ -122,8 +141,8 @@ parser = PydanticOutputParser(pydantic_object=ProductContent)
 
 # Create the prompt template
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are an expert e-commerce copywriter. Format your response as JSON."),
-    ("human", "{instructions}\n\nPRODUCT DATA:\nTitle: {title}\nBody HTML: {body_html}\n\n{format_instructions}")
+    ("system", "You are an expert e-commerce copywriter. You must ONLY use information provided in the product data. Do NOT hallucinate or invent information. Prioritize accuracy and compliance over marketing flair. Avoid health claims that could trigger platform flags. Format your response as JSON."),
+    ("human", "{instructions}\n\nPRODUCT DATA:\nTitle: {title}\nBody HTML: {body_html}\n\nIMPORTANT: Only use information from the Title and Body HTML above. Do not add any information that is not explicitly stated. If information is missing, work with what you have. Accuracy is more important than completeness. Avoid health claims and prioritize compliance.\n\n{format_instructions}")
 ])
 
 # Partial the prompt with instructions and format_instructions

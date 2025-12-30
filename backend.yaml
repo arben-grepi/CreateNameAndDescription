@@ -1,0 +1,16 @@
+# Firebase Backend Apps configuration
+# This tells Firebase to use Docker instead of buildpacks
+
+runtime: python312
+
+# Use Dockerfile for build
+build:
+  dockerfile: Dockerfile
+
+# Environment variables (set these in Firebase Console)
+env:
+  - variable: ANTHROPIC_API_KEY
+    secret: ANTHROPIC_API_KEY
+  - variable: CORS_ORIGINS
+    value: "*"  # Or set specific origins
+
