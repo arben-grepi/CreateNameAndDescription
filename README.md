@@ -69,13 +69,68 @@ Generate optimized product content from Shopify product data.
 - `langchain-anthropic` - Anthropic/Claude integration
 - `langchain-core` - LangChain core functionality
 
-## Deployment
+## Deployment to Google Cloud Run
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions for:
-- Firebase Functions
-- Cloud Run
-- Railway
-- Render
+This service is published to **Google Cloud Run**, a serverless container platform. Here's how to deploy it:
+
+### Prerequisites
+
+1. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
+2. Authenticate: `gcloud auth login`
+3. Set your project: `gcloud config set project YOUR_PROJECT_ID`
+4. Enable required APIs:
+   ```bash
+   gcloud services enable cloudbuild.googleapis.com
+   gcloud services enable run.googleapis.com
+   ```
+
+### Quick Deploy
+
+Deploy with a single command (builds from Dockerfile automatically):
+
+```bash
+gcloud run deploy product-content-api \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars ANTHROPIC_API_KEY=your_key_here,CORS_ORIGINS=https://yourdomain.com
+```
+
+After deployment, you'll receive a URL like:
+```
+https://product-content-api-xxxxx-uc.a.run.app
+```
+
+### Using Secret Manager (Recommended for Production)
+
+For better security, store your API key in Google Secret Manager:
+
+```bash
+# Create secret (one time)
+echo -n "your_anthropic_api_key" | gcloud secrets create anthropic-api-key --data-file=-
+
+# Grant Cloud Run access
+gcloud secrets add-iam-policy-binding anthropic-api-key \
+  --member="serviceAccount:YOUR_SERVICE_ACCOUNT@PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
+# Deploy with secret
+gcloud run deploy product-content-api \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-secrets ANTHROPIC_API_KEY=anthropic-api-key:latest \
+  --set-env-vars CORS_ORIGINS=https://yourdomain.com
+```
+
+### Updating the Deployment
+
+To update after making changes, simply run the deploy command again:
+```bash
+gcloud run deploy product-content-api --source . --region us-central1 --allow-unauthenticated
+```
 
 ## Next.js Integration
 

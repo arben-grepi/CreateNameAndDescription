@@ -174,3 +174,7 @@ The deployment follows security best practices:
 - **Response**: JSON object with `displayName`, `displayDescription`, and `bulletpoints` fields
 - **Validation**: Both request and response are validated using Pydantic models
 - **Error Handling**: HTTP exceptions with descriptive error messages for failures
+
+## AI Skills
+
+LangChain, Anthropic Claude API, Prompt Engineering, Structured Output Parsing, LLM Orchestration, Pydantic Models, Type-Safe AI Responses, Constraint-Based Generation, Context-Aware Processing, Compliance & Safety Guidelines, Error Handling for LLM Systems, FastAPI, Python, JSON Schema Validation, Production AI Deployment, Docker, Google Cloud Run, Secret Manager, IAM Configuration
